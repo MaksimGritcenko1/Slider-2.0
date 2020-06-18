@@ -16,6 +16,7 @@ class Slider extends React.Component {
             transitionEndPermission: false,
             width: null,
             arrowDisabled: false,
+            onPointerDownPermission: true,
             sliderStep: 100 / this.props.children.length
         };
     }
@@ -76,7 +77,8 @@ class Slider extends React.Component {
             this.setState({
                 transition: 'all 0.5s',
                 transitionEndPermission: false,
-                arrowDisabled: false
+                arrowDisabled: false,
+                onPointerDownPermission: true
             })
         });
     }
@@ -87,7 +89,8 @@ class Slider extends React.Component {
                 transition: 'all 0.5s',
                 transitionEndPermission: false,
                 directionWasChanged: false,
-                arrowDisabled: false
+                arrowDisabled: false,
+                onPointerDownPermission: true
             })
         });
     }
@@ -122,8 +125,10 @@ class Slider extends React.Component {
     diff
 
     onPointerDown = (e) => {
-        this.startingX = e.pageX;
-        this.setState({moving: true, transition: 'none'});
+        if (this.state.onPointerDownPermission) {
+            this.startingX = e.pageX;
+            this.setState({moving: true, transition: 'none'});
+        }
     }
     onPointerMove = (e) => {
         this.diff = e.pageX - this.startingX;
@@ -137,7 +142,11 @@ class Slider extends React.Component {
 
     onPointerUp = () => {
         const keyPoint = this.state.width / 5;
-        this.setState({moving: false, transition: 'all 0.5s'});
+        this.setState({
+            moving: false,
+            transition: 'all 0.5s',
+            onPointerDownPermission: false
+        });
 
         if (this.diff > keyPoint) this.prevSlide();
         else if (this.diff < -keyPoint) this.nextSlide();
