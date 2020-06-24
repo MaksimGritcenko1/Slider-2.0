@@ -10,14 +10,13 @@ const Carousel = ({
                       transitionEndHandler, onPointerDown,
                       onPointerMove, onPointerUp,
                       children, transition,
-                      transform, prevSlide, nextSlide
+                      transform, prevSlide, nextSlide, sliderRef,
                   }) => {
     return (
         <div className={styles.carousel}
              style={{
                  width: `${width}px`,
                  justifyContent: `${justifyContent}`,
-
              }}>
             <div className={styles.slider}
                  onTransitionEnd={transitionEndHandler}
@@ -29,9 +28,11 @@ const Carousel = ({
                      transition: `${transition}`,
                      transform: `translateX(${transform}%)`
                  }}
-                 id={'slider'}
+                 ref={sliderRef}
             >
+
                 {children}
+
             </div>
 
             <Arrow arrowStyle={styles.arrow + " " + styles.prev}

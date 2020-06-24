@@ -6,6 +6,7 @@ import Carousel from "./Carousel";
 class Slider extends React.Component {
     constructor(props) {
         super(props);
+        this.sliderRef = React.createRef();
         this.state = {
             transform: -(100 / this.props.children.length),
             transition: 'all 0.5s',
@@ -16,12 +17,9 @@ class Slider extends React.Component {
             transitionEndPermission: false,
             width: null,
             arrowDisabled: false,
-            onPointerDownPermission: true,
             sliderStep: 100 / this.props.children.length
         };
     }
-
-    slider;
 
 
     widthCheck = () => {
@@ -31,8 +29,7 @@ class Slider extends React.Component {
     }
 
     componentDidMount() {
-        this.slider = document.getElementById('slider');
-        this.slider.prepend(this.slider.lastElementChild);
+        this.sliderRef.current.prepend(this.sliderRef.current.lastElementChild);
         this.widthCheck();
     }
 
@@ -59,14 +56,14 @@ class Slider extends React.Component {
     }
 
     nextSlide = () => {
-        if (!this.state.arrowDisabled) {
-            this.arrowHandler(-1, -this.state.sliderStep * 2, 'flex-start');
-        }
-    };
+        !this.state.arrowDisabled
+        && this.arrowHandler(-1, -this.state.sliderStep * 2, 'flex-start');
+
+    }
     prevSlide = () => {
-        if (!this.state.arrowDisabled) {
-            this.arrowHandler(1, this.state.sliderStep * 2, 'flex-end');
-        }
+        !this.state.arrowDisabled
+        && this.arrowHandler(1, this.state.sliderStep * 2, 'flex-end');
+
     }
 
     /////INFINITE MODE
@@ -77,20 +74,18 @@ class Slider extends React.Component {
             this.setState({
                 transition: 'all 0.5s',
                 transitionEndPermission: false,
-                arrowDisabled: false,
-                onPointerDownPermission: true
+                arrowDisabled: false
             })
         });
     }
-    onChangeDirection = (transform, justifyContent) => {
+    onOppositeDirection = (transform, justifyContent) => {
         this.setState({transition: 'none', transform, justifyContent});
         setTimeout(() => {
             this.setState({
                 transition: 'all 0.5s',
                 transitionEndPermission: false,
                 directionWasChanged: false,
-                arrowDisabled: false,
-                onPointerDownPermission: true
+                arrowDisabled: false
             })
         });
     }
@@ -99,21 +94,21 @@ class Slider extends React.Component {
         if (this.state.transitionEndPermission) {
             if (this.state.direction === -1) {
                 if (this.state.directionWasChanged === false) {
-                    this.slider.appendChild(this.slider.firstElementChild);
+                    this.sliderRef.current.appendChild(this.sliderRef.current.firstElementChild);
                     this.onSameDirection(-this.state.sliderStep);
                 } else if (this.state.directionWasChanged === true) {
-                    this.slider.prepend(this.slider.lastElementChild);
-                    this.slider.prepend(this.slider.lastElementChild);
-                    this.onChangeDirection(-this.state.sliderStep, 'flex-start');
+                    this.sliderRef.current.prepend(this.sliderRef.current.lastElementChild);
+                    this.sliderRef.current.prepend(this.sliderRef.current.lastElementChild);
+                    this.onOppositeDirection(-this.state.sliderStep, 'flex-start');
                 }
             } else if (this.state.direction === 1) {
                 if (this.state.directionWasChanged === false) {
-                    this.slider.prepend(this.slider.lastElementChild);
+                    this.sliderRef.current.prepend(this.sliderRef.current.lastElementChild);
                     this.onSameDirection(this.state.sliderStep);
                 } else if (this.state.directionWasChanged === true) {
-                    this.slider.appendChild(this.slider.firstElementChild);
-                    this.slider.appendChild(this.slider.firstElementChild);
-                    this.onChangeDirection(this.state.sliderStep, 'flex-end');
+                    this.sliderRef.current.appendChild(this.sliderRef.current.firstElementChild);
+                    this.sliderRef.current.appendChild(this.sliderRef.current.firstElementChild);
+                    this.onOppositeDirection(this.state.sliderStep, 'flex-end');
                 }
             }
         }
@@ -121,39 +116,34 @@ class Slider extends React.Component {
     }
 
     ////TOUCHES AND MOUSE HANDLERS
-    startingX
-    diff
+    startingX;
+    diff;
 
     onPointerDown = (e) => {
-        if (this.state.onPointerDownPermission) {
-            this.startingX = e.pageX;
-            this.setState({moving: true, transition: 'none'});
-        }
+        this.startingX = e.pageX;
+        this.setState({moving: true, transition: 'none'});
     }
+
     onPointerMove = (e) => {
         this.diff = e.pageX - this.startingX;
 
         if (this.state.direction === -1 && this.state.moving) {
-            this.slider.style.transform = `translateX(${-this.state.width + this.diff}px)`;
+            this.sliderRef.current.style.transform = `translateX(${-this.state.width + this.diff}px)`;
         } else if (this.state.direction === 1 && this.state.moving) {
-            this.slider.style.transform = `translateX(${this.state.width + this.diff}px)`;
+            this.sliderRef.current.style.transform = `translateX(${this.state.width + this.diff}px)`;
         }
     }
 
     onPointerUp = () => {
         const keyPoint = this.state.width / 5;
-        this.setState({
-            moving: false,
-            transition: 'all 0.5s',
-            onPointerDownPermission: false
-        });
+        this.setState({moving: false, transition: 'all 0.5s'});
 
         if (this.diff > keyPoint) this.prevSlide();
         else if (this.diff < -keyPoint) this.nextSlide();
         else {
             this.state.direction === -1
-                ? this.slider.style.transform = `translateX(${-this.state.width}px)`
-                : this.slider.style.transform = `translateX(${this.state.width}px)`;
+                ? this.sliderRef.current.style.transform = `translateX(${-this.state.width}px)`
+                : this.sliderRef.current.style.transform = `translateX(${this.state.width}px)`;
 
         }
         this.diff = null;
@@ -174,6 +164,7 @@ class Slider extends React.Component {
                           width={this.state.width}
                           nextSlide={this.nextSlide}
                           prevSlide={this.prevSlide}
+                          sliderRef={this.sliderRef}
                 />
             </div>
         );
